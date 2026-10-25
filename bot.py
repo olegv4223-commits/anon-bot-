@@ -1,10 +1,18 @@
+import os
+import threading
+from flask import Flask
 import telebot
 from telebot import types
 
 TOKEN = "8512024930:AAE6tTxEoaszJ2oU9UoPxyAVx95Ly2bVIio"
 bot = telebot.TeleBot(TOKEN)
 
-# Хранилище: кому пользователь сейчас пишет сообщение
+# Принудительно сбрасываем старые зависшие подключения
+try:
+    bot.remove_webhook()
+except Exception:
+    pass
+
 user_recipients = {}
 
 @bot.message_handler(commands=['start'])
@@ -12,7 +20,6 @@ def start_command(message):
     args = message.text.split()
     bot_info = bot.get_me()
 
-    # Если перешли по ссылке /start <id>
     if len(args) > 1 and args[1].isdigit():
         target_id = int(args[1])
         if target_id == message.chat.id:
@@ -37,7 +44,6 @@ def handle_message(message):
         bot.send_message(sender_id, "Чтобы отправить сообщение, перейдите по персональной ссылке нужного человека.")
         return
 
-    # Кнопка для ответа
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton("Ответить", callback_data=f"reply_{sender_id}"))
 
@@ -62,8 +68,22 @@ def handle_reply_button(call):
     bot.answer_callback_query(call.id)
     bot.send_message(call.message.chat.id, "Напишите ваш ответ. Он отправится обратно анонимно:")
 
+# Веб-сервер для бесплатного тарифа Render Web Service
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running live!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
+
 if __name__ == '__main__':
+    # Запуск порта в отдельном потоке
+    threading.Thread(target=run_flask, daemon=True).start()
     print("Бот работает...")
-    bot.infinity_polling()
+    bot.infinity_polling(skip_pending=True)
+
 
 
