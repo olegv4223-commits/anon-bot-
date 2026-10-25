@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 
-TOKEN = "8512024930:AAGHa5CMmDW4PkSlvn2Ee6A8wN-cIFB91tQ"
+TOKEN = "8512024930:AAE6tTxEoaszJ2oU9UoPxyAVx95Ly2bVIio"
 bot = telebot.TeleBot(TOKEN)
 
 # Хранилище: кому пользователь сейчас пишет сообщение
